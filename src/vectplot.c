@@ -99,6 +99,8 @@ int main(int argc,char **argv) {
 		XDrawSegments(xv.dsp,xv.frm_win,xv.fftgrid_gc,
 			fftgrid,sizeof(fftgrid)/sizeof(fftgrid[0]));		
 
+		// TODO: rm magic numbers, only recalc on window change
+
 		// vect plot details -----
 		XDrawArc(xv.dsp,xv.frm_win,xv.label_gc,
       ((vectplot.sx+vectplot.ex)/2)-4,
@@ -106,17 +108,15 @@ int main(int argc,char **argv) {
       8,8,
       0,23040);
 
-		char *str="+I";
 		XDrawString(xv.dsp,xv.frm_win,xv.label_gc,
 			vectplot.ex-15,
 			((vectplot.ey-vectplot.sy)/2)+vectplot.sy-5,
-			str,strlen(str));
+			"+I",2);
 
-		char *str2="+Q";
     XDrawString(xv.dsp,xv.frm_win,xv.label_gc,
       5+(vectplot.sx+vectplot.ex)/2,
       vectplot.sy+15,
-      str2,strlen(str2));
+      "+Q",2);
 		// ----------------------
 
 		// fft plot details -----
