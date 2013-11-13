@@ -80,15 +80,63 @@ int main(int argc,char **argv) {
 
 	XPoint histpoints[HISTSIZE*HISTSIZE]; 
 	XPoint fftpoints[winsize];
+	XPoint fftmaxhold[winsize]; // will only use this many if win is very wide
+	char reset_maxhold=1;
+
+   // reset and allocate
+  for (i=0;i<(fftplot.ex-fftplot.sx);i++) {
+    fftmaxhold[i].y=fftplot.ey;
+    fftmaxhold[i].x=i;
+  }
+  int num_holdpts=fftplot.ex-fftplot.sx;
 
 	while(1) {
 		while (XEventsQueued(xv.dsp,QueuedAfterFlush)) 
 			handleWinEvents(&xv,&vectplot,&fftplot,vectgrid,fftgrid);
 		XClearWindow(xv.dsp,xv.frm_win);
 		XDrawSegments(xv.dsp,xv.frm_win,xv.vectgrid_gc,
-				vectgrid,sizeof(vectgrid)/sizeof(vectgrid[0]));
+			vectgrid,sizeof(vectgrid)/sizeof(vectgrid[0]));
 		XDrawSegments(xv.dsp,xv.frm_win,xv.fftgrid_gc,
-				fftgrid,sizeof(fftgrid)/sizeof(fftgrid[0]));		
+			fftgrid,sizeof(fftgrid)/sizeof(fftgrid[0]));		
+
+		// vect plot details -----
+		XDrawArc(xv.dsp,xv.frm_win,xv.label_gc,
+      ((vectplot.sx+vectplot.ex)/2)-4,
+      ((vectplot.sy+vectplot.ey)/2)-4,
+      8,8,
+      0,23040);
+
+		char *str="+I";
+		XDrawString(xv.dsp,xv.frm_win,xv.label_gc,
+			vectplot.ex-15,
+			((vectplot.ey-vectplot.sy)/2)+vectplot.sy-5,
+			str,strlen(str));
+
+		char *str2="+Q";
+    XDrawString(xv.dsp,xv.frm_win,xv.label_gc,
+      5+(vectplot.sx+vectplot.ex)/2,
+      vectplot.sy+15,
+      str2,strlen(str2));
+		// ----------------------
+
+		// fft plot details -----
+		XDrawArc(xv.dsp,xv.frm_win,xv.label_gc,
+      ((fftplot.sx+fftplot.ex)/2)-4,
+      fftplot.ey-4,
+      8,8,
+      0,23040);	
+
+		XDrawString(xv.dsp,xv.frm_win,xv.label_gc,
+			fftplot.ex-50,
+			fftplot.ey-1,
+			"+1 MHz >",8);
+
+		XDrawString(xv.dsp,xv.frm_win,xv.label_gc,
+      fftplot.sx+3,
+      fftplot.ey-1,
+      "< -1 MHz",8);
+
+		// ----------------------
 
 		if (DEBUG_TIME) {
 			gettimeofday(&t,NULL);
@@ -132,17 +180,29 @@ int main(int argc,char **argv) {
 			}
 		}
 		
-		XDrawPoints(xv.dsp,xv.frm_win,xv.gcxt,histpoints,c,
-				CoordModeOrigin);
+		XDrawPoints(xv.dsp,xv.frm_win,xv.gcxt,histpoints,c,CoordModeOrigin);
 
 		// log base fftmax of fft = log(fft)/log(fftmax)
 		fftmax=log(fftmax);	
 		for (i=0;i<winsize;i++) {
 			fftpoints[i].x=x2screen(1+(int)((HISTSIZE-1)*i/winsize),&fftplot);
 			fftpoints[i].y=y2screen((int)((HISTSIZE-1)*log(mags[i])/fftmax),&fftplot);
+
+			if (reset_maxhold) {
+				//fftmaxhold[i].y=fftpoints[i].y;
+				reset_maxhold=0;
+			} else {
+				// less than because we're in px
+				if (fftpoints[i].y<fftmaxhold[fftpoints[i].x].y) 
+					fftmaxhold[fftpoints[i].x].y=fftpoints[i].y;
+			}
 		}
 		XDrawLines(xv.dsp,xv.frm_win,xv.gcxt,fftpoints,
 				sizeof(fftpoints)/sizeof(fftpoints[0]),CoordModeOrigin);
+
+		// TODO: don't draw max hold points that overlap the bottom gridline
+		XDrawPoints(xv.dsp,xv.frm_win,xv.label_gc,fftmaxhold,num_holdpts,CoordModeOrigin);
+
 	}
 
 	fclose(fp);

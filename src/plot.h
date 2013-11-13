@@ -15,6 +15,7 @@ typedef struct {
   GC                      gcxt;
   GC                      vectgrid_gc;
   GC                      fftgrid_gc;
+	GC											label_gc;
   XEvent                  event;
   int                     depth;
 } XVars;

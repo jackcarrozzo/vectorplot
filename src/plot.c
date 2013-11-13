@@ -46,6 +46,7 @@ void buildWindow(XVars *xv) {
   Colormap colormap;
   XColor  vectgrid_col;
   XColor  fftgrid_col;
+	XColor	label_col;
 
   colormap=DefaultColormap(xv->dsp,0);
   xv->vectgrid_gc=XCreateGC(xv->dsp,xv->frm_win,0,0);
@@ -58,6 +59,12 @@ void buildWindow(XVars *xv) {
   XParseColor(xv->dsp,colormap,"#00FF00",&fftgrid_col);
   XAllocColor(xv->dsp,colormap,&fftgrid_col);
   XSetForeground(xv->dsp,xv->fftgrid_gc,fftgrid_col.pixel);
+
+	colormap=DefaultColormap(xv->dsp,0);
+  xv->label_gc=XCreateGC(xv->dsp,xv->frm_win,0,0);
+  XParseColor(xv->dsp,colormap,"#FF0000",&label_col);
+  XAllocColor(xv->dsp,colormap,&label_col);
+  XSetForeground(xv->dsp,xv->label_gc,label_col.pixel);
 
   // finally, show the window
   XMapWindow(xv->dsp,xv->frm_win);
